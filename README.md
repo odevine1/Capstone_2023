@@ -71,3 +71,56 @@ colnames(precipreduced) <- c("Name", "Precip", "year")
 
 all_climate_data <- merge(tempreduced, precipreduced, by = c("Name", "year"))
 
+
+
+
+
+
+
+#FOR CLEANING THE WNV DATA
+# Load the necessary libraries
+library(dplyr)
+library(readr)
+
+# Load the data
+wnv_data <- read_csv('WNV data request.csv')
+
+# Remove rows with NA values in 'County' or 'Diagnosis Year' columns
+wnv_data <- na.omit(wnv_data, cols = c("County", "Diagnosis Year"))
+
+# Select only the 'County' and 'Diagnosis Year' columns
+wnv_data <- select(wnv_data, County, `Diagnosis Year`)
+
+# Create a new column 'Human Cases' that contains the count of each duplicate
+wnv_data <- wnv_data %>% 
+  mutate(`Human Cases` = 1) %>% 
+  group_by(County, `Diagnosis Year`) %>% 
+  summarise(`Human Cases` = sum(`Human Cases`))
+
+# List of all Wyoming counties
+wy_counties <- c('Albany', 'Big Horn', 'Campbell', 'Carbon', 'Converse', 'Crook', 'Fremont', 'Goshen', 'Hot Springs', 'Johnson', 'Laramie', 'Lincoln', 'Natrona', 'Niobrara', 'Park', 'Platte', 'Sheridan', 'Sublette', 'Sweetwater', 'Teton', 'Uinta', 'Washakie', 'Weston')
+
+# List of all years in the data
+years <- unique(wnv_data$`Diagnosis Year`)
+
+# Insert missing Wyoming counties for each year and give them a value of 0 for 'Human Cases'
+for (county in wy_counties) {
+  for (year in years) {
+    if (!any(wnv_data$County == county & wnv_data$`Diagnosis Year` == year)) {
+      wnv_data <- rbind(wnv_data, data.frame(County = county, `Diagnosis Year` = year, `Human Cases` = 0))
+    }
+  }
+}
+
+# Sort the dataframe by 'County' and 'Diagnosis Year'
+wnv_data <- arrange(wnv_data, County, `Diagnosis Year`)
+
+# Rename the columns
+colnames(wnv_data) <- c('Name', 'year', 'Cases')
+
+# Add the word 'County' after each county in the 'Name' column
+wnv_data$Name <- paste(wnv_data$Name, 'County')
+
+
+
+
