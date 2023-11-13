@@ -79,16 +79,21 @@ all_climate_data <- merge(tempreduced, precipreduced, by = c("Name", "year"))
 
 note: FOR CLEANING THE WNV DATA
 note: Load the necessary libraries
+
 library(dplyr)
 library(readr)
 
 note: Load the data
+
 wnv_data <- read_csv('WNV data request.csv')
 
 note: Remove rows with NA values in 'County' or 'Diagnosis Year' columns
+
 wnv_data <- na.omit(wnv_data, cols = c("County", "Diagnosis Year"))
 
+
 note: Select only the 'County' and 'Diagnosis Year' columns
+
 wnv_data <- select(wnv_data, County, `Diagnosis Year`)
 
 note: Create a new column 'Human Cases' that contains the count of each duplicate
@@ -97,8 +102,10 @@ wnv_data <- wnv_data %>%
   group_by(County, `Diagnosis Year`) %>% 
   summarise(`Human Cases` = sum(`Human Cases`))
 
+
 note: List of all Wyoming counties
 wy_counties <- c('Albany', 'Big Horn', 'Campbell', 'Carbon', 'Converse', 'Crook', 'Fremont', 'Goshen', 'Hot Springs', 'Johnson', 'Laramie', 'Lincoln', 'Natrona', 'Niobrara', 'Park', 'Platte', 'Sheridan', 'Sublette', 'Sweetwater', 'Teton', 'Uinta', 'Washakie', 'Weston')
+
 
 note: List of all years in the data
 years <- unique(wnv_data$`Diagnosis Year`)
@@ -113,20 +120,25 @@ for (county in wy_counties) {
 }
 
 note: Sort the dataframe by 'County' and 'Diagnosis Year'
+
 wnv_data <- arrange(wnv_data, County, `Diagnosis Year`)
 
 note: Rename the columns
+
 colnames(wnv_data) <- c('Name', 'year', 'Cases')
 
 note: Add the word 'County' after each county in the 'Name' column
+
 wnv_data$Name <- paste(wnv_data$Name, 'County')
 
 
 note: read in wnv data
+
 all_wnv_data <- read.csv("wnv_data_2.csv")
 
 
 note: combine all data
+
 all_data <- merge(all_climate_data, all_wnv_data, by = c("Name", "year"))
 
 
