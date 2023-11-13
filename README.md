@@ -14,7 +14,7 @@ temp2021 <- read.csv("2021-av-temp.csv", skip = 4)
 
 temp2022 <- read.csv("2022-av-temp.csv", skip = 4)
 
-temp2023 <- read.csv("2023-av-temp.csv", skip = 4)
+temp2023 <- read.csv("2023-av-temp2.csv", skip = 4)
 
 
 
@@ -26,7 +26,7 @@ precip2021 <- read.csv("2021-precip.csv", skip = 4)
 
 precip2022 <- read.csv("2022-precip.csv", skip = 4)
 
-precip2023 <- read.csv("2023-precip.csv", skip = 4)
+precip2023 <- read.csv("2023-precip2.csv", skip = 4)
 
 
 note: create year column to be able to combine data, double brackets define column name
@@ -121,6 +121,13 @@ colnames(wnv_data) <- c('Name', 'year', 'Cases')
 # Add the word 'County' after each county in the 'Name' column
 wnv_data$Name <- paste(wnv_data$Name, 'County')
 
+
+note: read in wnv data
+all_wnv_data <- read.csv("wnv_data_2.csv")
+
+
+note: combine all data
+all_data <- merge(all_climate_data, all_wnv_data, by = c("Name", "year"))
 
 
 
