@@ -136,10 +136,67 @@ note: read in wnv data
 
 all_wnv_data <- read.csv("wnv_data_2.csv")
 
-
 note: combine all data
 
 all_data <- merge(all_climate_data, all_wnv_data, by = c("Name", "year"))
 
+total_cases <- group_by(all_data, year) %>% 
+  summarise(totalcases = sum(Cases))
+
+
+
+ggplot(data = all_data) + 
+  geom_smooth(mapping = aes(x = year, y = Cases, color = Name))
+  
+note:get rid of zeros
+
+filtered_counties <- group_by(all_data, Name)%>%
+  filter(any(Cases != 0))
+
+jit_filt_counties <- mutate(filtered_counties, Cases_jit = jitter(Cases, factor = 1))
+
+ggplot(data = jit_filt_counties) + 
+  geom_smooth(mapping = aes(x = year, y = Cases_jit, color = Name))+
+  labs(x = "Year", y = "Cases", color = "WY Counties")
+
+note:conversion factor for plotting purposes
+
+conv <- 40
+ggplot(data = all_data) + 
+  geom_smooth(data = total_cases, mapping = aes(x = year, y = totalcases, color = "Cases")) +
+  geom_smooth(mapping = aes(x = year, y = Temp - conv, color = "Temp")) +
+  scale_y_continuous(sec.axis = sec_axis(~.+conv, name = "Temp F"))
+
+ggplot(data = all_data) +
+  geom_point(mapping = aes(x = Temp, y = Cases))
+
+map_sf <- us_counties()
+ggplot(data = map_sf) +
+  geom_sf(fill = "grey") +
+  coord_sf() +
+  theme_minimal()
+
+map_wy <- map_sf[map_sf$state_abbr == "WY",]
+
+data_2023 <-all_data %>% filter(year == 2023)
+
+map_2023 <- merge(map_wy, data_2023, by.y = "Name", by.x = "namelsad")
+
+ggplot(data = map_2023) +
+  geom_sf(fill = "grey") +
+  coord_sf() +
+  theme_minimal()
+
+centroids <- st_centroid(map_2023$geometry)
+centroids_df <- as.data.frame(st_coordinates(centroids))
+centroids_df$Cases <- map_2023$Cases
+
+ggplot(data = map_2023) +
+  geom_sf(mapping = aes(fill = Temp)) +
+  geom_text(data = centroids_df, aes(x = X, y = Y, label = Cases))+
+  coord_sf() +
+  theme_minimal()+
+  scale_fill_gradient(low = "blue2", high = "tomato", name = "Average Temp")+
+  labs(x = NULL, y = NULL)
 
 
